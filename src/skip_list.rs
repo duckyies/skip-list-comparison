@@ -221,7 +221,7 @@ impl<T: KeyVal + Clone> SkipList<T> {
         None
     }
 
-
+    
     pub fn delete(&mut self, data: T::Key) -> Option<T>
     where
         T::Key: Ord,
@@ -297,5 +297,34 @@ impl<T: KeyVal + Clone> SkipList<T> {
 
     pub fn get_free_list(&self) -> &Vec<NodeID> {
         &self.free_list
+    }
+
+    //@TEST
+    pub fn search_debug(&self, key: T::Key) -> Option<SkipListNode<T>>
+    where
+        T::Key: Ord,
+    {
+        let mut curr_level = MAX_LEVEL - 1;
+        let mut curr_node = self.head;
+        while curr_level >= 0 {
+            if let Some(node_index) = self.nodes[curr_node].forwards[curr_level as usize] {
+                let node_bound = &self.nodes[node_index].data;
+
+                match node_bound.cmp_key(&key) {
+                    Ordering::Greater => {
+                        curr_level -= 1;
+                    }
+                    Ordering::Equal => {
+                        return Some(self.nodes[node_index].clone());
+                    }
+                    Ordering::Less => {
+                        curr_node = node_index;
+                    }
+                }
+            } else {
+                curr_level -= 1;
+            }
+        }
+        None
     }
 }
